@@ -7,6 +7,7 @@ on:
       - 'packages/**'
       - 'assets/**'
       - 'scripts/verify-release.mjs'
+      - 'scripts/verify-live-site.mjs'
       - 'pnpm-lock.yaml'
       - 'pnpm-workspace.yaml'
       - 'package.json'
@@ -44,3 +45,7 @@ jobs:
           path: apps/web/dist
       - uses: actions/deploy-pages@v4
         id: deployment
+      - name: Install browser for public website checks
+        run: pnpm exec playwright install --with-deps chromium
+      - name: Verify the deployed public website
+        run: node scripts/verify-live-site.mjs "${{ steps.deployment.outputs.page_url }}"
