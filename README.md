@@ -2,7 +2,7 @@
 
 A local-first Windows desktop companion and a separate React product website. The **Electron app** puts a transparent, click-through buddy over other applications. The website provides a browser demonstration; it cannot draw over your desktop.
 
-[Download SipBuddy 1.0.0 for Windows x64](https://github.com/amanpundir2027-lgtm/Sipbuddy/releases/download/v1.0.0/SipBuddy-Setup-1.0.0.exe) · [Release notes](https://github.com/amanpundir2027-lgtm/Sipbuddy/releases/tag/v1.0.0). This is an unsigned installer; see the SmartScreen notes and Windows acceptance checklist below. The website production build is verified. GitHub Pages deployment is configured as the public sharing option; Vercel hosting still needs account authorization.
+[Download SipBuddy 1.0.0 for Windows x64](https://github.com/amanpundir2027-lgtm/Sipbuddy/releases/download/v1.0.0/SipBuddy-Setup-1.0.0.exe) · [Release notes](https://github.com/amanpundir2027-lgtm/Sipbuddy/releases/tag/v1.0.0). This is an unsigned installer; see the SmartScreen notes and Windows acceptance checklist below. The website production build is verified. Vercel hosting still needs account authorization. SipBuddy must have its own hosting address; do not reuse the domain of another application.
 
 ## Your original mascot
 
@@ -69,7 +69,7 @@ Linux cross-builds additionally need Wine. `electron-builder --win nsis --x64 --
 
 ## Public website hosting
 
-GitHub Pages is configured through `.github/workflows/pages.yml`. It deploys `apps/web/dist` after relevant pushes to `main`, using the repository’s `github-pages` environment. Vite’s relative asset paths support the repository subpath. The public page includes the browser demo and verified Windows installer link; it does not provide OS overlays.
+Use a separate Vercel project for SipBuddy, with its own `vercel.app` address or an explicitly selected SipBuddy domain. Do not reuse another application's custom domain. The GitHub Pages deployment workflow has been removed because project Pages sites inherit the custom domain of the account's main Pages site. An existing Pages deployment may still need to be unpublished in GitHub Settings → Pages by an authorized repository owner; removing the workflow does not delete a published site.
 
 ### Vercel
 
