@@ -1,9 +1,7 @@
-SipBuddy's first Windows build uses Aman's original transparent avatar. Includes the click-through desktop overlay, main-process reminders, tray controls, local hydration tracker, settings, and quiet hours.
+SipBuddy 1.0.1 adds an articulated walk cycle to the original avatar. Alternating hip swings and knee bends replace the previous whole-image bob. A gentle weight shift and contact shadow complete each footfall. The original PNG is unchanged; the face, torso, arms, and bottle move together as one intact layer.
 
-Download **SipBuddy-Setup-1.0.0.exe** below (Windows x64, per-user installation).
+The same animation is used in the website preview and real Windows desktop overlay, with cadence adapted to character size and travel speed. Reduced-motion preferences disable the limb movement.
 
-This installer is **unsigned** and may trigger Windows SmartScreen / unknown-publisher warnings. Signing has not been configured.
+Download **SipBuddy-Setup-1.0.1.exe** below (Windows x64, per-user installation). Install over the existing version to retain your local history and preferences.
 
-Automated validation covers the scheduler, tracker, persistence, website layouts/animation/PNG transparency, and actual Electron dashboard/overlay lifecycle. Real interactive Windows acceptance checks remain: overlay over Excel/Chrome, focus and click-through under normal desktop use, mixed-DPI/multi-monitor operation, sleep/lock behavior, and installation/update/uninstall on a personal laptop. Full-screen games/presentations are not automatically detected; use Pause from the tray.
-
-Hydration history stays local. Your editable 2,000 mL starting goal is not medical advice. See the repository README for instructions and the full acceptance checklist.
+This installer is **unsigned** and may trigger Windows SmartScreen / unknown-publisher warnings. Signing is not configured. Automated unit, browser, and Electron checks do not replace hands-on Windows acceptance checks over Excel/Chrome, mixed-DPI displays, and installation/update/uninstall on your laptop. Pause reminders manually for full-screen presentations or games.

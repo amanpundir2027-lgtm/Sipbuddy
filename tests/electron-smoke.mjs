@@ -17,7 +17,9 @@ try {
  await page.getByRole('button',{name:'Test My Mascot Walk'}).click();await page.waitForTimeout(1000);
  const windows=app.windows();console.log('Window count during walk:',windows.length);
  const overlay=windows.find(w=>w.url().includes('overlay=1'));if(!overlay)throw Error('Overlay missing');
- await overlay.waitForSelector('.walking-buddy');const x=await overlay.locator('.walking-buddy').evaluate(e=>e.getBoundingClientRect().left);await overlay.waitForTimeout(1200);const x2=await overlay.locator('.walking-buddy').evaluate(e=>e.getBoundingClientRect().left);if(x2<=x)throw Error('Overlay did not move');console.log('Real overlay traversed right:',{from:x,to:x2});
+ await overlay.waitForSelector('.walking-buddy');
+ const gait=overlay.locator('.walking-mascot');await gait.waitFor();const kneeBefore=await gait.locator('.gait-knee').first().evaluate(e=>getComputedStyle(e).transform);await overlay.waitForTimeout(200);const kneeAfter=await gait.locator('.gait-knee').first().evaluate(e=>getComputedStyle(e).transform);if(kneeBefore===kneeAfter)throw Error('Desktop knees did not articulate');console.log('Original-avatar knee articulation passed');
+ const x=await overlay.locator('.walking-buddy').evaluate(e=>e.getBoundingClientRect().left);await overlay.waitForTimeout(1200);const x2=await overlay.locator('.walking-buddy').evaluate(e=>e.getBoundingClientRect().left);if(x2<=x)throw Error('Overlay did not move');console.log('Real overlay traversed right:',{from:x,to:x2});
  const transparent=await overlay.evaluate(()=>[document.documentElement,document.body,document.getElementById('root')].every(e=>getComputedStyle(e).backgroundColor==='rgba(0, 0, 0, 0)'));if(!transparent)throw Error('Overlay CSS is opaque');
  console.log('Overlay flags:',await app.evaluate(({BrowserWindow})=>{const w=BrowserWindow.getAllWindows().find(w=>w.webContents.getURL().includes('overlay=1'));return {focusable:w.isFocusable(),alwaysOnTop:w.isAlwaysOnTop(),background:w.getBackgroundColor()}}));
  await overlay.waitForEvent('close',{timeout:30000});console.log('Overlay destroyed after animation');

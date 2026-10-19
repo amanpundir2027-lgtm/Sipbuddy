@@ -6,7 +6,7 @@ A local-first Windows desktop companion and a separate React product website. Th
 
 ## Your original mascot
 
-Your original transparent PNG is included at **`assets/aman-water-chibi.png`** (renamed byte-for-byte from `Refreshing Chibi Water Break.png`). The face is never generated or redesigned. Both apps use this single asset unchanged, with `object-fit: contain`. Motion translates, bobs, and gently rotates the entire image; it does not fake separate limbs or distort the bottle. Until the PNG is present, the UI shows an explicitly labeled water-drop placeholder. A public version-tag release refuses to proceed without the original PNG.
+Your original transparent PNG is included at **`assets/aman-water-chibi.png`** (renamed byte-for-byte from `Refreshing Chibi Water Break.png`). The face is never generated or redesigned. Both apps use this single asset unchanged, with `object-fit: contain`. The walk uses clipped layers of this same PNG: alternating hip swings and knee bends, a gentle weight shift, and a soft contact shadow. The face, torso, arms, and bottle stay together as one rigid layer. The original file is unchanged; this is a 2D cutout walk cycle, not a newly generated avatar or a 3D model. Until the PNG is present, the UI shows an explicitly labeled water-drop placeholder. A public version-tag release refuses to proceed without the original PNG.
 
 On GitHub, upload the image through **Add file → Upload files**; if it lands at the root, move it to `assets/aman-water-chibi.png`. Rebuild after adding it. Transparent alpha is required; a black background in an image viewer does not by itself prove the PNG has lost transparency.
 

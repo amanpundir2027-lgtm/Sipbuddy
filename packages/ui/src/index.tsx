@@ -1,10 +1,30 @@
 import React,{useEffect,useRef,useState} from 'react';
 import {Droplets,Play,Check,Plus,Pause,ArrowUpRight,Flame,Volume2,Monitor,Settings2,X,Timer} from 'lucide-react';
 import {motion} from 'motion/react';
+import {WalkingMascot} from './WalkingMascot';
 import {DEFAULT_SETTINGS,MESSAGES,dailyTotal,weekHistory,streak,localDate,type State,type Settings,type Command,type Monitor as Screen,type WalkData} from '@sipbuddy/core';
 export function Brand(){return <a className="brand" href="#"><span className="brand-icon"><Droplets size={22}/></span>SipBuddy<span className="brand-dot">.</span></a>}
 export function Mascot({height=170,className=''}:{height?:number;className?:string}){const [missing,setMissing]=useState(false);return missing?<div className={`mascot-placeholder ${className}`} style={{height,width:height*.76}} aria-label="Placeholder: upload your original avatar"><Droplets size={height*.5} strokeWidth={1.1}/><span>Your buddy<br/>belongs here</span></div>:<img className={`mascot ${className}`} src="./aman-water-chibi.png" onError={()=>setMissing(true)} style={{height}} alt="Aman’s personal hydration buddy"/>}
-export function Walk({data,onDone,compact=false}:{data:WalkData;onDone:()=>void;compact?:boolean}){const ref=useRef<HTMLDivElement>(null);const doneRef=useRef(onDone);useEffect(()=>{doneRef.current=onDone},[onDone]);useEffect(()=>{const el=ref.current;if(!el)return;const width=el.parentElement?.clientWidth??innerWidth;const animation=el.animate([{transform:'translateX(-360px)'},{transform:`translateX(${width+40}px)`}],{duration:data.durationSeconds*1000,easing:'linear',fill:'forwards'});animation.onfinish=()=>doneRef.current();return ()=>animation.cancel()},[data.durationSeconds]);return <div ref={ref} className="walking-buddy" style={{bottom:data.bottomOffset}}><div className="speech">{data.message}</div><div className="buddy-bob"><Mascot height={compact?Math.min(data.size,135):data.size}/></div></div>}
+export function Walk({data,onDone,compact=false}:{data:WalkData;onDone:()=>void;compact?:boolean}) {
+ const ref=useRef<HTMLDivElement>(null);
+ const doneRef=useRef(onDone);
+ const height=compact?Math.min(data.size,135):data.size;
+ useEffect(()=>{doneRef.current=onDone},[onDone]);
+ useEffect(()=>{
+  const el=ref.current;if(!el)return;
+  const width=el.parentElement?.clientWidth??innerWidth;
+  const speed=(width+400)/data.durationSeconds;
+  const cycle=Math.max(.64,Math.min(1.15,height*.38/speed));
+  el.style.setProperty('--gait-cycle',`${cycle}s`);
+  const animation=el.animate([{transform:'translateX(-360px)'},{transform:`translateX(${width+40}px)`}],{duration:data.durationSeconds*1000,easing:'linear',fill:'forwards'});
+  animation.onfinish=()=>doneRef.current();
+  return ()=>animation.cancel();
+ },[data.durationSeconds,height]);
+ return <div ref={ref} className="walking-buddy" style={{bottom:data.bottomOffset}}>
+  <div className="speech">{data.message}</div>
+  <WalkingMascot height={height}/>
+ </div>;
+}
 export function Preview({settings=DEFAULT_SETTINGS}:{settings?:Settings}){const [playing,setPlaying]=useState(false);const [run,setRun]=useState(0);useEffect(()=>{const play=()=>{setRun(n=>n+1);setPlaying(true)};window.addEventListener('sipbuddy:test-walk',play);return ()=>window.removeEventListener('sipbuddy:test-walk',play)},[]);return <div className="preview-window"><div className="window-top"><div className="window-dots"><i/><i/><i/></div><span>Your everyday workspace</span><span className="demo-badge">BROWSER DEMO</span></div><div className="workspace-scene"><div className="fake-sheet"><div className="sheet-heading"><span>Monday, made a little better.</span><span>✦</span></div><div className="sheet-grid">{Array.from({length:30},(_,i)=><span key={i}>{i<6?['','A','B','C','D','E'][i]:i%6===0?Math.floor(i/6):i===9?'Good things take little habits.':''}</span>)}</div></div><div className="scene-glow"/>{playing?<Walk key={run} data={{...settings,size:Math.min(settings.size,145),bottomOffset:22,message:settings.messages[0]}} compact onDone={()=>setPlaying(false)}/>:<div className="stationary-buddy"><div className="speech">Oye, paani pee le! 💧</div><Mascot height={145}/></div>}<div className="scene-taskbar"><span>▦</span><span>⌕</span><span>📁</span><span>🌐</span><span>▤</span><span className="taskbar-time">09:41</span></div></div><div className="preview-footer"><span><i className="status-dot"/> A small break. A little more you.</span><button className="text-button" onClick={()=>{setRun(n=>n+1);setPlaying(true)}}><Play size={14} fill="currentColor"/> {playing?'Restart walk':'Meet your buddy'}</button></div></div>}
 function Toggle({label,checked,onChange,description}:{label:string;checked:boolean;onChange:(v:boolean)=>void;description?:string}){return <label className="toggle-row"><span>{label}{description&&<small>{description}</small>}</span><input type="checkbox" checked={checked} onChange={e=>onChange(e.target.checked)}/><span className="toggle-track"/></label>}
 export function Dashboard({state,onCommand,monitors=[],browser=false}:{state:State;onCommand:(command:Command)=>Promise<unknown>;monitors?:Screen[];browser?:boolean}){
