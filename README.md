@@ -2,7 +2,7 @@
 
 A local-first Windows desktop companion and a separate React product website. The **Electron app** puts a transparent, click-through buddy over other applications. The website provides a browser demonstration; it cannot draw over your desktop.
 
-[Download SipBuddy 1.0.0 for Windows x64](https://github.com/amanpundir2027-lgtm/Sipbuddy/releases/download/v1.0.0/SipBuddy-Setup-1.0.0.exe) · [Release notes](https://github.com/amanpundir2027-lgtm/Sipbuddy/releases/tag/v1.0.0). This is an unsigned installer; see the SmartScreen notes and Windows acceptance checklist below. The website production build is verified; Vercel hosting still needs account authorization.
+[Download SipBuddy 1.0.0 for Windows x64](https://github.com/amanpundir2027-lgtm/Sipbuddy/releases/download/v1.0.0/SipBuddy-Setup-1.0.0.exe) · [Release notes](https://github.com/amanpundir2027-lgtm/Sipbuddy/releases/tag/v1.0.0). This is an unsigned installer; see the SmartScreen notes and Windows acceptance checklist below. The website production build is verified. GitHub Pages deployment is configured as the public sharing option; Vercel hosting still needs account authorization.
 
 ## Your original mascot
 
@@ -67,7 +67,11 @@ Signing is not configured. An unsigned installer can display **Windows SmartScre
 
 Linux cross-builds additionally need Wine. `electron-builder --win nsis --x64 --publish never -c.win.signAndEditExecutable=false` can avoid Windows resource editing for an unsigned cross-build, but Wine is still needed to generate the uninstaller. Prefer the Windows CI job for release artifacts.
 
-## Vercel
+## Public website hosting
+
+GitHub Pages is configured through `.github/workflows/pages.yml`. It deploys `apps/web/dist` after relevant pushes to `main`, using the repository’s `github-pages` environment. Vite’s relative asset paths support the repository subpath. The public page includes the browser demo and verified Windows installer link; it does not provide OS overlays.
+
+### Vercel
 
 Import this GitHub repository into your Vercel project. Set **Root Directory = `apps/web`** and allow source files outside that directory (the `packages/*` workspace dependencies and `assets/*` are required). `apps/web/vercel.json` configures Vite, frozen pnpm installation, the workspace build, and `dist` output. No application secrets are needed.
 
