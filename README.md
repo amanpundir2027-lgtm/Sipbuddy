@@ -21,6 +21,7 @@ pnpm test
 pnpm build               # both production builds + main/preload bundles
 pnpm exec playwright install --with-deps chromium
 pnpm test:e2e
+pnpm test:electron       # real Electron smoke; requires a graphical session
 ```
 
 `pnpm dev:desktop` needs a graphical desktop. On Windows, no Wine or X server is needed. On Linux, a graphical session is required; a virtual X server is useful for smoke tests but does not verify Windows compositor behavior. When a compatible Chromium is preinstalled, use `PLAYWRIGHT_CHROMIUM_EXECUTABLE=/usr/bin/chromium pnpm test:e2e` instead of downloading another browser.
@@ -58,7 +59,7 @@ pnpm dist:win
 
 Output: `apps/desktop/release/SipBuddy-Setup-1.0.0.exe` (64-bit, per-user NSIS installer with shortcuts and no required elevation). Update app versions together before a new release.
 
-`.github/workflows/release.yml` builds on `windows-latest`. A manual run produces a downloadable workflow artifact; pushing a version tag such as `v1.0.0` publishes the installer through `gh release create`, with `contents: write` scoped to that job. The tag must already exist remotely and the original mascot must be in the checkout. Review the Windows checks below **before tagging**.
+`.github/workflows/release.yml` builds on `windows-latest`. A manual run produces a downloadable workflow artifact (it may contain the labeled placeholder if the original PNG has not been added); pushing a version tag such as `v1.0.0` publishes the installer through `gh release create`, with `contents: write` scoped to that job. The tag must already exist remotely and the original mascot must be in the checkout. Review the Windows checks below **before tagging**.
 
 Signing is not configured. An unsigned installer can display **Windows SmartScreen / unknown publisher** warnings. Do not describe this build as signed or tell users to ignore a warning without checking the source. A branded Windows executable icon is also not configured yet; the installer currently uses Electron's default app icon, while the system tray has its own water drop.
 

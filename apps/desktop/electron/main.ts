@@ -6,6 +6,7 @@ import {fileURLToPath} from 'node:url';
 import {Store} from './store';
 import {advanceScheduler,applyCommand,chooseMessage,inQuietHours,nextDue,shouldRemind,type State,type WalkData} from '@sipbuddy/core';
 app.setName('SipBuddy');
+if(!app.isPackaged&&process.env.SIPBUDDY_TEST_DATA_DIR)app.setPath('userData',path.resolve(process.env.SIPBUDDY_TEST_DATA_DIR));
 const dev=process.env.SIPBUDDY_DEV_URL==='http://localhost:5174'&&!app.isPackaged;
 let dashboard:BrowserWindow|null=null,tray:Tray,store:Store,state:State,quitting=false,locked=false,suspended=false,lastTick=Date.now();
 const overlays=new Map<number,{window:BrowserWindow;data:WalkData;timer:ReturnType<typeof setTimeout>}>();

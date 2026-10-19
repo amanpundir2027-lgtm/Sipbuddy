@@ -10,7 +10,8 @@
     "test": "vitest run",
     "test:e2e": "playwright test",
     "typecheck": "tsc --noEmit",
-    "dist:win": "pnpm --filter @sipbuddy/desktop dist:win"
+    "dist:win": "pnpm --filter @sipbuddy/desktop dist:win",
+    "test:electron": "pnpm --filter @sipbuddy/desktop build && node tests/electron-smoke.mjs"
   },
   "devDependencies": {
     "@playwright/test": "^1.58.0",
