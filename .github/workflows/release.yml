@@ -1,0 +1,45 @@
+name: Windows installer and release
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  windows:
+    runs-on: windows-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.25.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm typecheck
+      - run: pnpm test
+      - run: pnpm build
+      - name: Require original mascot before a public release
+        if: startsWith(github.ref, 'refs/tags/')
+        shell: pwsh
+        run: |
+          if (!(Test-Path 'assets/aman-water-chibi.png')) { throw 'Add the original avatar before publishing a release.' }
+      - run: pnpm dist:win
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+      - uses: actions/upload-artifact@v4
+        with:
+          name: SipBuddy-Windows-x64
+          path: apps/desktop/release/SipBuddy-Setup-*.exe
+          if-no-files-found: error
+      - name: Publish installer on version tags
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: pwsh
+        run: |
+          gh release create "$env:GITHUB_REF_NAME" apps/desktop/release/SipBuddy-Setup-*.exe --verify-tag --title "SipBuddy $env:GITHUB_REF_NAME" --generate-notes

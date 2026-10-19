@@ -1,0 +1,77 @@
+{
+  "name": "@sipbuddy/desktop",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node electron/dev.mjs",
+    "build": "vite build && node electron/build.mjs",
+    "dist:win": "pnpm build && electron-builder --win nsis --x64 --publish never"
+  },
+  "dependencies": {
+    "@sipbuddy/core": "workspace:*",
+    "@sipbuddy/ui": "workspace:*",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "motion": "^12.0.0",
+    "lucide-react": "^0.468.0"
+  },
+  "devDependencies": {
+    "vite": "^7.0.0",
+    "@vitejs/plugin-react": "^5.0.0",
+    "tailwindcss": "^4.0.0",
+    "@tailwindcss/vite": "^4.0.0",
+    "electron": "^40.0.0",
+    "electron-builder": "^26.0.0",
+    "esbuild": "^0.27.0"
+  },
+  "main": "dist-electron/main.cjs",
+  "description": "A friendly local hydration companion",
+  "author": "SipBuddy",
+  "build": {
+    "appId": "com.sipbuddy.app",
+    "productName": "SipBuddy",
+    "asar": true,
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "dist-electron/**/*",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "../../assets",
+        "to": "assets",
+        "filter": [
+          "aman-water-chibi.png",
+          "tray.png"
+        ]
+      }
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "artifactName": "SipBuddy-Setup-${version}.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowElevation": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "deleteAppDataOnUninstall": false
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/amanpundir2027-lgtm/Sipbuddy.git"
+  }
+}

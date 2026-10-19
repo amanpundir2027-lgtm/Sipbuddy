@@ -1,0 +1,9 @@
+packages:
+  - apps/*
+  - packages/*
+allowBuilds:
+  electron: true
+  esbuild: true
+  electron-winstaller: false
+storeDir: .pnpm-store
+cacheDir: .pnpm-cache

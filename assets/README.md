@@ -1,0 +1,1 @@
+Upload your original transparent mascot PNG here as `aman-water-chibi.png`. It is intentionally not generated or redesigned. Both apps use this exact file. Restart Vite or rebuild after adding it. Until then, a labeled water-drop placeholder appears.

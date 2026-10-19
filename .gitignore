@@ -1,0 +1,15 @@
+node_modules/
+dist/
+dist-electron/
+release/
+.vercel/
+playwright-report/
+test-results/
+*.log
+.env*
+!.env.example
+.pnpm-store/
+.pnpm-cache/
+.pnpm-state/
+assets/release.json
+website-preview.png
