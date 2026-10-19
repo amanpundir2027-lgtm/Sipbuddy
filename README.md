@@ -2,9 +2,11 @@
 
 A local-first Windows desktop companion and a separate React product website. The **Electron app** puts a transparent, click-through buddy over other applications. The website provides a browser demonstration; it cannot draw over your desktop.
 
-## Add your original mascot
+[Download SipBuddy 1.0.0 for Windows x64](https://github.com/amanpundir2027-lgtm/Sipbuddy/releases/download/v1.0.0/SipBuddy-Setup-1.0.0.exe) · [Release notes](https://github.com/amanpundir2027-lgtm/Sipbuddy/releases/tag/v1.0.0). This is an unsigned installer; see the SmartScreen notes and Windows acceptance checklist below. The website production build is verified; Vercel hosting still needs account authorization.
 
-Save the original transparent PNG at **`assets/aman-water-chibi.png`**. The face is never generated or redesigned. Both apps use this single asset unchanged, with `object-fit: contain`. Motion translates, bobs, and gently rotates the entire image; it does not fake separate limbs or distort the bottle. Until the PNG is present, the UI shows an explicitly labeled water-drop placeholder. A public version-tag release refuses to proceed without the original PNG.
+## Your original mascot
+
+Your original transparent PNG is included at **`assets/aman-water-chibi.png`** (renamed byte-for-byte from `Refreshing Chibi Water Break.png`). The face is never generated or redesigned. Both apps use this single asset unchanged, with `object-fit: contain`. Motion translates, bobs, and gently rotates the entire image; it does not fake separate limbs or distort the bottle. Until the PNG is present, the UI shows an explicitly labeled water-drop placeholder. A public version-tag release refuses to proceed without the original PNG.
 
 On GitHub, upload the image through **Add file → Upload files**; if it lands at the root, move it to `assets/aman-water-chibi.png`. Rebuild after adding it. Transparent alpha is required; a black background in an image viewer does not by itself prove the PNG has lost transparency.
 
