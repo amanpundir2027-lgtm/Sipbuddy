@@ -1,5 +1,6 @@
 import {test,expect} from '@playwright/test';
 test('landing page, demo walk, and honest download state',async({page})=>{
+ await page.route('**/release.json',route=>route.fulfill({json:{verified:false,url:null}}));
  const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));await page.goto('/');await expect(page.getByRole('heading',{level:1})).toContainText('Your hydration buddy');
  await page.getByRole('link',{name:'See My Buddy Walk'}).click();const preview=page.locator('#preview');await preview.getByRole('button',{name:'Meet your buddy'}).click();const buddy=preview.locator('.walking-buddy');await expect(buddy).toBeAttached();const before=await buddy.evaluate(e=>e.getBoundingClientRect().left);await page.waitForTimeout(1200);const after=await buddy.evaluate(e=>e.getBoundingClientRect().left);expect(after).toBeGreaterThan(before);
  await expect(page.locator('#download')).toContainText('NOT RELEASED YET');expect(await page.locator('body').evaluate(e=>e.scrollWidth<=innerWidth)).toBe(true);expect(errors).toEqual([]);
