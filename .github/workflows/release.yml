@@ -35,7 +35,7 @@ jobs:
           CSC_IDENTITY_AUTO_DISCOVERY: 'false'
       - name: Verify packaged update feed and installer integrity
         run: node scripts/verify-update-artifacts.mjs
-      - name: Exercise the shipped Windows update client against GitHub
+      - name: Exercise the shipped Windows update client
         run: node tests/packaged-updates-smoke.mjs
       - uses: actions/upload-artifact@v4
         with:
@@ -52,3 +52,8 @@ jobs:
         shell: pwsh
         run: |
           gh release create "$env:GITHUB_REF_NAME" apps/desktop/release/SipBuddy-Setup-*.exe apps/desktop/release/*.blockmap apps/desktop/release/latest.yml --verify-tag --title "SipBuddy $env:GITHUB_REF_NAME" --notes-file .github/RELEASE_NOTES.md --generate-notes
+      - name: Verify the packaged client reads the published GitHub feed
+        if: startsWith(github.ref, 'refs/tags/')
+        run: node tests/packaged-updates-smoke.mjs
+        env:
+          SIPBUDDY_VERIFY_PUBLIC_FEED: '1'

@@ -12,6 +12,8 @@ try{
  const page=await app.firstWindow();await page.waitForSelector('.dashboard');
  const initial=await page.evaluate(()=>window.sipbuddy.getUpdateState());
  if(initial.currentVersion!==version||initial.status==='disabled')throw Error('Packaged update client missing or wrong version');
+ console.log('PACKAGED_UPDATE_RUNTIME_PASSED',initial.currentVersion);
+ if(process.env.SIPBUDDY_VERIFY_PUBLIC_FEED!=='1'){console.log('Public feed check runs after release assets are published.')}else{
  const before=await page.evaluate(()=>window.sipbuddy.getState());
  await page.getByRole('button',{name:'Check for updates',exact:true}).click();
  await page.waitForFunction(async()=>['current','available','error'].includes((await window.sipbuddy.getUpdateState()).status),{},{timeout:60000});
@@ -23,4 +25,5 @@ try{
  const after=await page.evaluate(()=>window.sipbuddy.getState());
  if(JSON.stringify(after)!==JSON.stringify(before))throw Error('Checking for updates changed user state');
  console.log('PACKAGED_UPDATE_CHECK_PASSED',checked.status,checked.currentVersion);
+ }
 }finally{await app.close()}
