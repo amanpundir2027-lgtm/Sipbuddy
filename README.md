@@ -2,11 +2,21 @@
 
 A local-first Windows desktop companion and a separate React product website. The **Electron app** puts a transparent, click-through buddy over other applications. The website provides a browser demonstration; it cannot draw over your desktop.
 
-[Download SipBuddy 1.2.0 for Windows x64](https://github.com/amanpundir2027-lgtm/Sipbuddy/releases/download/v1.2.0/SipBuddy-Setup-1.2.0.exe) · [Release notes](https://github.com/amanpundir2027-lgtm/Sipbuddy/releases/tag/v1.2.0). This is an unsigned installer; see the SmartScreen notes and Windows acceptance checklist below. The website production build is verified. The website is deployed separately at https://sipbuddy-eta.vercel.app. SipBuddy must have its own hosting address; do not reuse the domain of another application.
+[Download SipBuddy 1.3.0 for Windows x64](https://github.com/amanpundir2027-lgtm/Sipbuddy/releases/download/v1.3.0/SipBuddy-Setup-1.3.0.exe) · [Release notes](https://github.com/amanpundir2027-lgtm/Sipbuddy/releases/tag/v1.3.0). This is an unsigned installer; see the SmartScreen notes and Windows acceptance checklist below. The website production build is verified. The website is deployed separately at https://sipbuddy-eta.vercel.app. SipBuddy must have its own hosting address; do not reuse the domain of another application.
 
-## Use your own avatar
+## Application updates
 
-On the website, open **Upload your own avatar**, or open **My buddy** inside the Windows app. Choose **Upload existing avatar**, select a PNG/JPEG/WebP image (up to 10 MB), give it a name, and click **Use my avatar**. Your uploaded artwork replaces the original in previews, the dashboard, and real desktop reminders. No AI redraw, image service, or credits are used.
+Versions 1.2.0 and earlier do not have an update client. Those users must download and run the latest installer once, without uninstalling; their local profile is retained. Version 1.3.0 introduces the update client for future releases.
+
+Installed Windows copies check the public GitHub release feed 20 seconds after launch and every six hours while running. **App updates** in the dashboard shows the installed version and offers **Check for updates → Download update → Restart and install**. The tray also has **App updates…**. Downloads and restarts require user action; closing or quitting the app never silently installs a pending download. Offline failures show a retry option and a fixed link to the manual installer. Development builds skip update checks.
+
+For maintainers: bump all workspace package versions together, test, and push the matching `vX.Y.Z` tag. The Windows workflow publishes the NSIS `.exe`, its `.blockmap`, and `latest.yml` to a public, non-prerelease GitHub release. Those metadata files are required for installed clients to detect and validate the new installer (SHA-512). A website deployment alone cannot update the desktop executable. Keep `appId`, product name, per-user install scope and user-data path stable to preserve profiles. Do not publish a new tag with an unchanged package version. The current installer remains unsigned; code signing should be configured before describing releases as publisher-verified.
+
+Automatic update discovery, UI/IPC and consent gates have automated coverage. A packaged Windows-to-Windows upgrade and actual installer restart still need hands-on acceptance; do not claim this is tested end to end until two packaged versions are exercised. No later version exists at release time, so 1.3.0 should report up to date after publication.
+
+## Use your own avatar in the Windows app
+
+Inside the Windows app, click **Change my avatar** on Overview or open **My buddy**. You can also right-click the tray droplet and choose **Change my avatar…**. The website has a separate **Upload your own avatar** demo. Choose **Upload existing avatar**, select a PNG/JPEG/WebP image (up to 10 MB), give it a name, and click **Use my avatar**. Your uploaded artwork replaces the original in previews, the dashboard, and real desktop reminders. No AI redraw, image service, or credits are used.
 
 A transparent, full-body PNG with both legs visible works best for **Walk**. The image is resized proportionally into a transparent 512 × 512 canvas; its existing transparency is preserved. If necessary, open **Adjust walking joints** to line up hip height, knee height, the gap between the legs, and leg spacing. These settings change the animation, not the artwork. Choose **Float** for portraits or other artwork that should move as one intact image.
 
@@ -69,9 +79,9 @@ On Windows:
 pnpm dist:win
 ```
 
-Output: `apps/desktop/release/SipBuddy-Setup-1.2.0.exe` (64-bit, per-user NSIS installer with shortcuts and no required elevation). Update app versions together before a new release.
+Output: `apps/desktop/release/SipBuddy-Setup-1.3.0.exe` (64-bit, per-user NSIS installer with shortcuts and no required elevation). Update app versions together before a new release.
 
-`.github/workflows/release.yml` builds on `windows-latest`. A manual run produces a downloadable workflow artifact (it may contain the labeled placeholder if the original PNG has not been added); pushing a version tag such as `v1.2.0` publishes the installer through `gh release create`, with `contents: write` scoped to that job. The tag must already exist remotely and the original mascot must be in the checkout. Review the Windows checks below **before tagging**.
+`.github/workflows/release.yml` builds on `windows-latest`. A manual run produces a downloadable workflow artifact (it may contain the labeled placeholder if the original PNG has not been added); pushing a version tag such as `v1.3.0` publishes the installer through `gh release create`, with `contents: write` scoped to that job. The tag must already exist remotely and the original mascot must be in the checkout. Review the Windows checks below **before tagging**.
 
 Signing is not configured. An unsigned installer can display **Windows SmartScreen / unknown publisher** warnings. Do not describe this build as signed or tell users to ignore a warning without checking the source. A branded Windows executable icon is also not configured yet; the installer currently uses Electron's default app icon, while the system tray has its own water drop.
 

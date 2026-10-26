@@ -11,10 +11,14 @@ const profile=await fs.mkdtemp(path.join(tmpdir(),'sipbuddy-smoke-'));
 const app=await electron.launch({executablePath:executable,args:[...(process.env.SIPBUDDY_TEST_NO_SANDBOX==='1'?['--no-sandbox']:[]),main],env:{...process.env,SIPBUDDY_TEST_DATA_DIR:profile},timeout:30000});
 try {
  const page=await app.firstWindow();await page.waitForSelector('.dashboard');console.log('Electron dashboard loaded');
+ await page.getByRole('region',{name:'App updates'}).waitFor();
+ const update=await page.evaluate(()=>window.sipbuddy.getUpdateState());if(update.status!=='disabled')throw Error('Development app should not check production updates');
+ await page.evaluate(()=>window.sipbuddy.checkForUpdates());
+ console.log('Update UI and development update guard passed');
  console.log('Security:',await app.evaluate(({BrowserWindow})=>{const w=BrowserWindow.getAllWindows()[0];const p=w.webContents.getLastWebPreferences();return {contextIsolation:p.contextIsolation,nodeIntegration:p.nodeIntegration,sandbox:p.sandbox}}));
  await page.getByRole('button',{name:'250 mL',exact:true}).click();await page.waitForFunction(()=>document.querySelector('.progress-ring strong')?.textContent==='250');console.log('Real main-process IPC water log passed');
  const scheduled=await page.evaluate(()=>window.sipbuddy.getState());
- await page.getByRole('button',{name:'My buddy',exact:true}).click();
+ await page.getByRole('button',{name:'Change my avatar',exact:true}).click();
  await page.getByLabel('Upload your avatar image').setInputFiles(fileURLToPath(new URL('../assets/tray.png',import.meta.url)));
  await page.locator('.avatar-live-preview .uploaded-mascot').waitFor();
  await page.getByRole('button',{name:'Use my avatar',exact:true}).click();
@@ -26,6 +30,7 @@ try {
  const windows=app.windows();console.log('Window count during walk:',windows.length);
  const overlay=windows.find(w=>w.url().includes('overlay=1'));if(!overlay)throw Error('Overlay missing');
  await overlay.waitForSelector('.walking-buddy');
+ const rejected=await overlay.evaluate(async()=>{try{await window.sipbuddy.installUpdate();return false}catch{return true}});if(!rejected)throw Error('Overlay could invoke installer IPC');console.log('Overlay rejected by update IPC sender checks');
  await overlay.locator('[data-uploaded-avatar]').waitFor({state:'attached'});const overlayPortrait=await overlay.locator('[data-uploaded-avatar]').getAttribute('href');if(overlayPortrait!==personal.settings.avatar.image)throw Error('Overlay did not use saved personal avatar');console.log('Real overlay uses the uploaded avatar artwork, not the original mascot');
  const gait=overlay.locator('.walking-mascot');await gait.waitFor();const kneeBefore=await gait.locator('.gait-knee').first().evaluate(e=>getComputedStyle(e).transform);await overlay.waitForTimeout(200);const kneeAfter=await gait.locator('.gait-knee').first().evaluate(e=>getComputedStyle(e).transform);if(kneeBefore===kneeAfter)throw Error('Desktop knees did not articulate');console.log('Personal-avatar knee articulation passed');
  const x=await overlay.locator('.walking-buddy').evaluate(e=>e.getBoundingClientRect().left);await overlay.waitForTimeout(1200);const x2=await overlay.locator('.walking-buddy').evaluate(e=>e.getBoundingClientRect().left);if(x2<=x)throw Error('Overlay did not move');console.log('Real overlay traversed right:',{from:x,to:x2});

@@ -1,0 +1,15 @@
+import {readFile,stat} from 'node:fs/promises';
+import {createHash} from 'node:crypto';
+const root=new URL('../apps/desktop/',import.meta.url);
+const {version}=JSON.parse(await readFile(new URL('package.json',root),'utf8'));
+if(process.env.GITHUB_REF_TYPE==='tag'&&process.env.GITHUB_REF_NAME!==`v${version}`)throw Error('Release tag and app version must match');
+const installer=`SipBuddy-Setup-${version}.exe`;
+const metadata=await readFile(new URL('release/latest.yml',root),'utf8');
+if(!metadata.includes(`version: ${version}\n`)||!metadata.includes(installer))throw Error('Missing or incorrect update metadata');
+const bytes=await readFile(new URL(`release/${installer}`,root));
+const hash=createHash('sha512').update(bytes).digest('base64');
+if(!metadata.includes(hash))throw Error('Installer does not match update SHA-512');
+if((await stat(new URL(`release/${installer}.blockmap`,root))).size===0)throw Error('Empty blockmap');
+const config=await readFile(new URL('release/win-unpacked/resources/app-update.yml',root),'utf8');
+for(const value of ['provider: github','owner: amanpundir2027-lgtm','repo: Sipbuddy'])if(!config.includes(value))throw Error(`Missing installed update feed setting: ${value}`);
+console.log(`Verified ${version}: packaged update feed, installer hash, blockmap and release manifest.`);

@@ -4,11 +4,17 @@ import path from 'node:path';
 import {existsSync} from 'node:fs';
 import {fileURLToPath} from 'node:url';
 import {Store} from './store';
+import updater from 'electron-updater';
+import desktopPackage from '../package.json';
+import {Updates} from './updates';
+import type {DesktopNavigation} from '@sipbuddy/core';
 import {validateAvatar,advanceScheduler,applyCommand,chooseMessage,inQuietHours,nextDue,shouldRemind,type State,type WalkData} from '@sipbuddy/core';
 app.setName('SipBuddy');
 if(!app.isPackaged&&process.env.SIPBUDDY_TEST_DATA_DIR)app.setPath('userData',path.resolve(process.env.SIPBUDDY_TEST_DATA_DIR));
 const dev=process.env.SIPBUDDY_DEV_URL==='http://localhost:5174'&&!app.isPackaged;
 let dashboard:BrowserWindow|null=null,tray:Tray,store:Store,state:State,quitting=false,locked=false,suspended=false,lastTick=Date.now();
+let updates:Updates;let navigation:DesktopNavigation|null=null;let updateTimer:ReturnType<typeof setInterval>|undefined;let startupCheck:ReturnType<typeof setTimeout>|undefined;
+function navigate(tab:DesktopNavigation['tab']){navigation={tab,id:(navigation?.id??0)+1};openDashboard();dashboard?.webContents.send('navigation:changed',navigation)}
 const overlays=new Map<number,{window:BrowserWindow;data:WalkData;timer:ReturnType<typeof setTimeout>}>();
 let tickTimer:ReturnType<typeof setInterval>;
 const preload=path.join(__dirname,'preload.cjs');
@@ -41,7 +47,9 @@ function createOverlay(display:Display,data:WalkData){
 function updateTray(){if(!tray)return;tray.setToolTip(`SipBuddy · ${state.settings.paused?'Paused':'Your next sip is on its way'}`);tray.setContextMenu(Menu.buildFromTemplate([
  {label:'Drink Water Now / Test Mascot Walk',click:()=>startWalk(true)},
  {label:'Log 250 mL Water',click:()=>command({type:'log',ml:250})},
- {label:'Open SipBuddy',click:openDashboard},{type:'separator'},
+ {label:'Open SipBuddy',click:openDashboard},
+ {label:'Change my avatar…',click:()=>navigate('My buddy')},
+ {label:'App updates…',click:()=>{navigate('Preferences');void updates.check()}},{type:'separator'},
  {label:'Pause Reminders (presentations & games)',enabled:!state.settings.paused,click:()=>command({type:'pause'})},
  {label:'Snooze 30 Minutes',click:()=>command({type:'snooze',minutes:30})},
  {label:'Resume Reminders',click:()=>command({type:'resume'})},{type:'separator'},
@@ -60,12 +68,21 @@ function command(input:unknown){
 function trusted(event:IpcMainInvokeEvent){if(!dashboard||event.sender.id!==dashboard.webContents.id||event.senderFrame!==dashboard.webContents.mainFrame)throw new Error('Unauthorized renderer')}
 function defer(){clearOverlays();state={...state,nextReminderAt:nextDue(state.settings,Date.now())};lastTick=Date.now();publish()}
 if(!app.requestSingleInstanceLock())app.quit();else{
- app.on('second-instance',openDashboard);app.on('before-quit',()=>{quitting=true;if(tickTimer)clearInterval(tickTimer);clearOverlays()});app.on('window-all-closed',()=>{});
+ app.on('second-instance',openDashboard);app.on('before-quit',()=>{quitting=true;if(updateTimer)clearInterval(updateTimer);if(startupCheck)clearTimeout(startupCheck);if(tickTimer)clearInterval(tickTimer);clearOverlays()});app.on('window-all-closed',()=>{});
  app.whenReady().then(()=>{
  session.defaultSession.setPermissionRequestHandler((_w,_p,cb)=>cb(false));
  session.defaultSession.webRequest.onHeadersReceived((details,cb)=>cb({responseHeaders:{...details.responseHeaders,'Content-Security-Policy':["default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self' ws://localhost:5174; object-src 'none'; base-uri 'none'"]}}));
  store=new Store(app.getPath('userData'));const firstRun=!existsSync(store.path);state=store.load();store.save(state);
+ const updateEnabled=app.isPackaged&&process.platform==='win32';
+ updates=new Updates(updateEnabled?updater.autoUpdater:null,app.isPackaged?app.getVersion():desktopPackage.version,updateEnabled,value=>{if(dashboard&&!dashboard.isDestroyed())dashboard.webContents.send('updates:changed',value)},()=>{store.save(state);quitting=true;clearOverlays()});
+ if(app.isPackaged&&process.platform==='win32'){startupCheck=setTimeout(()=>void updates.check(),20000);updateTimer=setInterval(()=>void updates.check(),6*60*60*1000)}
  tray=new Tray(nativeImage.createFromPath(path.join(resources,'tray.png')));tray.on('double-click',openDashboard);updateTray();
+ ipcMain.handle('navigation:get',e=>{trusted(e);return navigation});
+ ipcMain.handle('updates:get',e=>{trusted(e);return updates.state});
+ ipcMain.handle('updates:check',e=>{trusted(e);return updates.check()});
+ ipcMain.handle('updates:download',e=>{trusted(e);return updates.download()});
+ ipcMain.handle('updates:install',e=>{trusted(e);return updates.install()});
+ ipcMain.handle('updates:releases',e=>{trusted(e);return shell.openExternal('https://github.com/amanpundir2027-lgtm/Sipbuddy/releases/latest')});
  ipcMain.handle('state:get',e=>{trusted(e);return state});ipcMain.handle('state:command',(e,input)=>{trusted(e);return command(input)});
  ipcMain.handle('monitors:get',e=>{trusted(e);return screen.getAllDisplays().map((d,i)=>({id:String(d.id),name:d.label||`Display ${i+1} (${d.size.width} × ${d.size.height})`}))});
  ipcMain.on('overlay:ready',e=>{const o=overlays.get(e.sender.id);if(o&&e.senderFrame===e.sender.mainFrame){o.window.showInactive();e.sender.send('overlay:walk',o.data)}});

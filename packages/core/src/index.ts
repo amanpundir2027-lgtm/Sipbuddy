@@ -56,7 +56,9 @@ export function applyCommand(state:State,input:unknown,now=Date.now()):State {
  }
 }
 export interface Monitor {id:string;name:string}
-export interface DesktopAPI {getState:()=>Promise<State>;command:(command:Command)=>Promise<State>;monitors:()=>Promise<Monitor[]>;subscribe:(listener:(state:State)=>void)=>()=>void;onWalk:(listener:(data:WalkData)=>void)=>()=>void;walkDone:()=>void}
+export interface UpdateState {status:'disabled'|'idle'|'checking'|'current'|'available'|'downloading'|'downloaded'|'installing'|'error';currentVersion:string;version?:string;percent?:number;message?:string}
+export interface DesktopNavigation {tab:'My buddy'|'Preferences';id:number}
+export interface DesktopAPI {getUpdateState:()=>Promise<UpdateState>;checkForUpdates:()=>Promise<UpdateState>;downloadUpdate:()=>Promise<UpdateState>;installUpdate:()=>Promise<UpdateState>;openReleases:()=>Promise<void>;onUpdate:(listener:(state:UpdateState)=>void)=>()=>void;getNavigation:()=>Promise<DesktopNavigation|null>;onNavigate:(listener:(navigation:DesktopNavigation)=>void)=>()=>void;getState:()=>Promise<State>;command:(command:Command)=>Promise<State>;monitors:()=>Promise<Monitor[]>;subscribe:(listener:(state:State)=>void)=>()=>void;onWalk:(listener:(data:WalkData)=>void)=>()=>void;walkDone:()=>void}
 export interface WalkData {avatar?:AvatarProfile;durationSeconds:number;size:number;bottomOffset:number;message:string;sound:boolean}
 declare global {interface Window {sipbuddy?:DesktopAPI}}
 

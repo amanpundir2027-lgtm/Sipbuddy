@@ -33,10 +33,17 @@ jobs:
       - run: pnpm dist:win
         env:
           CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+      - name: Verify packaged update feed and installer integrity
+        run: node scripts/verify-update-artifacts.mjs
+      - name: Exercise the shipped Windows update client against GitHub
+        run: node tests/packaged-updates-smoke.mjs
       - uses: actions/upload-artifact@v4
         with:
           name: SipBuddy-Windows-x64
-          path: apps/desktop/release/SipBuddy-Setup-*.exe
+          path: |
+            apps/desktop/release/SipBuddy-Setup-*.exe
+            apps/desktop/release/*.blockmap
+            apps/desktop/release/latest.yml
           if-no-files-found: error
       - name: Publish installer on version tags
         if: startsWith(github.ref, 'refs/tags/')
@@ -44,4 +51,4 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         shell: pwsh
         run: |
-          gh release create "$env:GITHUB_REF_NAME" apps/desktop/release/SipBuddy-Setup-*.exe --verify-tag --title "SipBuddy $env:GITHUB_REF_NAME" --notes-file .github/RELEASE_NOTES.md --generate-notes
+          gh release create "$env:GITHUB_REF_NAME" apps/desktop/release/SipBuddy-Setup-*.exe apps/desktop/release/*.blockmap apps/desktop/release/latest.yml --verify-tag --title "SipBuddy $env:GITHUB_REF_NAME" --notes-file .github/RELEASE_NOTES.md --generate-notes
