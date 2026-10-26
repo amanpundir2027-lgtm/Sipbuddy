@@ -4,7 +4,7 @@ import path from 'node:path';
 import {existsSync} from 'node:fs';
 import {fileURLToPath} from 'node:url';
 import {Store} from './store';
-import {advanceScheduler,applyCommand,chooseMessage,inQuietHours,nextDue,shouldRemind,type State,type WalkData} from '@sipbuddy/core';
+import {validateAvatar,advanceScheduler,applyCommand,chooseMessage,inQuietHours,nextDue,shouldRemind,type State,type WalkData} from '@sipbuddy/core';
 app.setName('SipBuddy');
 if(!app.isPackaged&&process.env.SIPBUDDY_TEST_DATA_DIR)app.setPath('userData',path.resolve(process.env.SIPBUDDY_TEST_DATA_DIR));
 const dev=process.env.SIPBUDDY_DEV_URL==='http://localhost:5174'&&!app.isPackaged;
@@ -26,7 +26,7 @@ function startWalk(test=false){
  clearOverlays();const settings=state.settings;const message=chooseMessage(settings.messages,state.lastMessage);
  state={...state,lastMessage:message,...(!test?{reminders:[...state.reminders,Date.now()],nextReminderAt:nextDue(settings,Date.now())}:{})};publish();
  const displays=screen.getAllDisplays();const selected=settings.monitor==='all'?displays:[displays.find(d=>String(d.id)===settings.monitor)??screen.getPrimaryDisplay()];
- for(const display of selected)createOverlay(display,{durationSeconds:settings.durationSeconds,size:settings.size,bottomOffset:settings.bottomOffset,message,sound:settings.sound});
+ for(const display of selected)createOverlay(display,{avatar:settings.avatar,durationSeconds:settings.durationSeconds,size:settings.size,bottomOffset:settings.bottomOffset,message,sound:settings.sound});
  if(settings.sound)shell.beep();
 }
 function createOverlay(display:Display,data:WalkData){
@@ -47,8 +47,14 @@ function updateTray(){if(!tray)return;tray.setToolTip(`SipBuddy · ${state.setti
  {label:'Resume Reminders',click:()=>command({type:'resume'})},{type:'separator'},
  {label:'Quit SipBuddy',click:()=>{quitting=true;app.quit()}}
  ]))}
-function command(input:unknown){const previous=state.settings;state=applyCommand(state,input);if((input as {type:string}).type==='test')startWalk(true);else{
- if(state.settings.paused)clearOverlays();
+function command(input:unknown){
+ if(input&&typeof input==='object'&&['avatar','settings'].includes((input as {type:string}).type)){
+  const command=input as {type:string;avatar?:unknown;settings?:{avatar?:unknown}};
+  const avatar=validateAvatar(command.type==='avatar'?command.avatar:command.settings?.avatar??{kind:'original'});
+  if(avatar.kind==='personal'&&avatar.portrait){const image=nativeImage.createFromDataURL(avatar.portrait);if(image.isEmpty())throw new Error('Invalid portrait image');}
+ }
+ const previous=state.settings;state=applyCommand(state,input);if((input as {type:string}).type==='test')startWalk(true);else{
+ if(state.settings.paused||(input as {type:string}).type==='avatar')clearOverlays();
  if(previous.startAtLogin!==state.settings.startAtLogin||previous.startMinimized!==state.settings.startMinimized)app.setLoginItemSettings({openAtLogin:state.settings.startAtLogin,args:state.settings.startMinimized?['--hidden']:[]});publish();}return state}
 function trusted(event:IpcMainInvokeEvent){if(!dashboard||event.sender.id!==dashboard.webContents.id||event.senderFrame!==dashboard.webContents.mainFrame)throw new Error('Unauthorized renderer')}
 function defer(){clearOverlays();state={...state,nextReminderAt:nextDue(state.settings,Date.now())};lastTick=Date.now();publish()}
@@ -56,7 +62,7 @@ if(!app.requestSingleInstanceLock())app.quit();else{
  app.on('second-instance',openDashboard);app.on('before-quit',()=>{quitting=true;if(tickTimer)clearInterval(tickTimer);clearOverlays()});app.on('window-all-closed',()=>{});
  app.whenReady().then(()=>{
  session.defaultSession.setPermissionRequestHandler((_w,_p,cb)=>cb(false));
- session.defaultSession.webRequest.onHeadersReceived((details,cb)=>cb({responseHeaders:{...details.responseHeaders,'Content-Security-Policy':["default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self' ws://localhost:5174; object-src 'none'; base-uri 'none'"]}}));
+ session.defaultSession.webRequest.onHeadersReceived((details,cb)=>cb({responseHeaders:{...details.responseHeaders,'Content-Security-Policy':["default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self' ws://localhost:5174; object-src 'none'; base-uri 'none'"]}}));
  store=new Store(app.getPath('userData'));const firstRun=!existsSync(store.path);state=store.load();store.save(state);
  tray=new Tray(nativeImage.createFromPath(path.join(resources,'tray.png')));tray.on('double-click',openDashboard);updateTray();
  ipcMain.handle('state:get',e=>{trusted(e);return state});ipcMain.handle('state:command',(e,input)=>{trusted(e);return command(input)});

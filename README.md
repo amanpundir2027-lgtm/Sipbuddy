@@ -4,11 +4,19 @@ A local-first Windows desktop companion and a separate React product website. Th
 
 [Download SipBuddy 1.0.1 for Windows x64](https://github.com/amanpundir2027-lgtm/Sipbuddy/releases/download/v1.0.1/SipBuddy-Setup-1.0.1.exe) · [Release notes](https://github.com/amanpundir2027-lgtm/Sipbuddy/releases/tag/v1.0.1). This is an unsigned installer; see the SmartScreen notes and Windows acceptance checklist below. The website production build is verified. The website is deployed separately at https://sipbuddy-eta.vercel.app. SipBuddy must have its own hosting address; do not reuse the domain of another application.
 
-## Your original mascot
+## Make your own avatar
 
-Your original transparent PNG is included at **`assets/aman-water-chibi.png`** (renamed byte-for-byte from `Refreshing Chibi Water Break.png`). The face is never generated or redesigned. Both apps use this single asset unchanged, with `object-fit: contain`. The walk uses clipped layers of this same PNG: alternating hip swings and knee bends, a gentle weight shift, and a soft contact shadow. The face, torso, arms, and bottle stay together as one rigid layer. The original file is unchanged; this is a 2D cutout walk cycle, not a newly generated avatar or a 3D model. Until the PNG is present, the UI shows an explicitly labeled water-drop placeholder. A public version-tag release refuses to proceed without the original PNG.
+On the website, open **Add your photo. Create your own buddy**, or open **My buddy** inside the Windows app. Choose a PNG, JPEG, or WebP photo (up to 10 MB), frame your face with zoom and position controls, pick a cartoon portrait treatment or natural photo, and choose a name, outfit color, and skin tone. **Use my avatar** saves the result. The user's avatar replaces the original in previews, the dashboard, and real desktop reminders.
 
-On GitHub, upload the image through **Add file → Upload files**; if it lands at the root, move it to `assets/aman-water-chibi.png`. Rebuild after adding it. Transparent alpha is required; a black background in an image viewer does not by itself prove the PNG has lost transparency.
+New installations use a neutral illustrated buddy. Existing 1.0.x profiles retain their original choice during migration until the user chooses a personal avatar. **Use original demo avatar** is an explicit optional choice; a failed personal portrait falls back to a neutral face, never to Aman's photo.
+
+Conversion runs locally using a 256 × 256 pixel crop and optional posterized color/edge treatment on an animated vector body. This is a stylized photo avatar, **not AI-generated full-body chibi art**. It does not need a paid image service, an account, or an internet connection. Photos are never uploaded: only the processed cropped PNG is stored, without the original camera metadata. Website avatars stay in that browser; desktop avatars stay in the local app profile. There is no automatic cross-device sync. Set the avatar separately in the Windows app for real desktop overlays.
+
+**Remove my photo** clears the stored portrait and returns to the neutral buddy while preserving water history and reminder timing. Image headers, dimensions, format, size, names, and colors are validated; remote URLs, SVG, executable formats, oversized images, and external file paths are rejected. The Electron main process validates avatar commands and decodes the bounded PNG before saving. Do not include user photos in analytics, telemetry, logs, or external requests.
+
+## Original demo mascot
+
+Aman's original transparent PNG remains at **`assets/aman-water-chibi.png`**, unchanged from `Refreshing Chibi Water Break.png`. Its optional demo walk uses clipped hip and knee layers, with face and bottle kept together. Those masks are tailored to this specific asset; personal photo avatars use a separate universal animated body.
 
 ## Develop
 

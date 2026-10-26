@@ -1,4 +1,6 @@
 import React, {useId, useState, type CSSProperties} from 'react';
+import {DEFAULT_AVATAR,type AvatarProfile} from '@sipbuddy/core';
+import {PersonalMascot} from './PersonalMascot';
 
 // The supplied PNG is a square canvas. These masks follow its pants and shoes;
 // every visible body part still comes from that original, unmodified image.
@@ -9,7 +11,10 @@ const legs = [
     outline: '640,788 751,786 785,933 805,1085 850,1128 895,1180 899,1230 720,1230 690,1180 665,1086 649,1008 635,940 638,856'},
 ] as const;
 
-export function WalkingMascot({height}: {height: number}) {
+export function WalkingMascot({height,avatar=DEFAULT_AVATAR}: {height:number;avatar?:AvatarProfile}) {
+ return avatar.kind==='personal'?<PersonalMascot height={height} avatar={avatar} walking/>:<OriginalWalkingMascot height={height}/>;
+}
+function OriginalWalkingMascot({height}: {height: number}) {
   const id = `gait-${useId().replace(/[^a-zA-Z0-9]/g, '')}`;
   const [failed, setFailed] = useState(false);
   if (failed) return <span className="walking-asset-error" role="status">Your avatar couldn’t load.</span>;

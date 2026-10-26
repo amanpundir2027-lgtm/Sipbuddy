@@ -13,7 +13,7 @@ try {
  const page=await browser.newPage({viewport:{width:1366,height:900}});const errors=[];page.on('pageerror',e=>errors.push(e.message));
  await page.goto(site.href,{waitUntil:'networkidle'});
  await page.getByRole('heading',{level:1}).filter({hasText:'Your hydration buddy'}).waitFor();
- const avatar=page.getByRole('img',{name:'Aman’s personal hydration buddy'}).first();await avatar.waitFor();if(!await avatar.evaluate(e=>e.complete&&e.naturalWidth>0))throw new Error('Original PNG did not load');
+ const avatar=page.locator('.hero-visual .mascot, .hero-visual .personal-mascot').first();await avatar.waitFor();if(!await avatar.evaluate(e=>e instanceof HTMLImageElement?e.complete&&e.naturalWidth>0:e.getAttribute('data-avatar-kind')==='personal'))throw new Error('Avatar did not load');
  await page.waitForFunction(url=>!!document.querySelector(`a[href="${url}"]`),release.url);
  const preview=page.locator('#preview');await preview.getByRole('button',{name:'Meet your buddy'}).click();const buddy=preview.locator('.walking-buddy');await buddy.waitFor();const first=await buddy.evaluate(e=>e.getBoundingClientRect().left);await page.waitForTimeout(1200);const second=await buddy.evaluate(e=>e.getBoundingClientRect().left);if(second<=first)throw new Error('Live mascot demo did not move');
  if(errors.length)throw new Error(`Browser errors: ${errors.join('; ')}`);

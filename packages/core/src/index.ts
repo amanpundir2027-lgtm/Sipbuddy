@@ -1,3 +1,5 @@
+import {DEFAULT_AVATAR,validateAvatar,type AvatarProfile} from './avatar';
+export {DEFAULT_AVATAR,validateAvatar,type AvatarProfile} from './avatar';
 export const MESSAGES = {
   Hinglish: ['Oye, paani pee le! 💧','Ek sip toh banta hai!','Chal, ek water break ho jaye!','Hydration break, boss!'],
   English: ['Your water bottle misses you.','Paani > another coffee!','CEO of dehydration? Not today.',"You've been working hard. Time for water!"],
@@ -5,14 +7,14 @@ export const MESSAGES = {
 };
 export type Language = keyof typeof MESSAGES;
 export interface Settings {
-  intervalMinutes:number; paused:boolean; quietEnabled:boolean; quietStart:string; quietEnd:string;
+  avatar:AvatarProfile; intervalMinutes:number; paused:boolean; quietEnabled:boolean; quietStart:string; quietEnd:string;
   startAtLogin:boolean; startMinimized:boolean; sound:boolean; durationSeconds:number; size:number;
   bottomOffset:number; monitor:string; language:Language; messages:string[]; dailyGoal:number;
 }
 export interface WaterEntry {id:string; at:number; ml:number}
 export interface State {version:1; settings:Settings; water:WaterEntry[]; reminders:number[]; nextReminderAt:number; lastMessage:string}
-export const DEFAULT_SETTINGS:Settings = {intervalMinutes:30,paused:false,quietEnabled:true,quietStart:'22:00',quietEnd:'08:00',startAtLogin:false,startMinimized:true,sound:false,durationSeconds:23,size:170,bottomOffset:24,monitor:'primary',language:'Hinglish',messages:[...MESSAGES.Hinglish],dailyGoal:2000};
-export function initialState(now=Date.now()):State{return {version:1,settings:{...DEFAULT_SETTINGS,messages:[...DEFAULT_SETTINGS.messages]},water:[],reminders:[],nextReminderAt:now+30*60000,lastMessage:''}}
+export const DEFAULT_SETTINGS:Settings = {avatar:DEFAULT_AVATAR,intervalMinutes:30,paused:false,quietEnabled:true,quietStart:'22:00',quietEnd:'08:00',startAtLogin:false,startMinimized:true,sound:false,durationSeconds:23,size:170,bottomOffset:24,monitor:'primary',language:'Hinglish',messages:[...MESSAGES.Hinglish],dailyGoal:2000};
+export function initialState(now=Date.now()):State{return {version:1,settings:{...DEFAULT_SETTINGS,avatar:{...DEFAULT_AVATAR},messages:[...DEFAULT_SETTINGS.messages]},water:[],reminders:[],nextReminderAt:now+30*60000,lastMessage:''}}
 export function localDate(at:number):string { const d=new Date(at);return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
 export function dailyTotal(water:WaterEntry[],at=Date.now()):number{return water.filter(e=>localDate(e.at)===localDate(at)).reduce((n,e)=>n+e.ml,0)}
 export function weekHistory(water:WaterEntry[],now=Date.now()){return Array.from({length:7},(_,i)=>{const d=new Date(now);d.setDate(d.getDate()-6+i);return {date:localDate(d.getTime()),label:d.toLocaleDateString(undefined,{weekday:'short'}),ml:dailyTotal(water,d.getTime())}})}
@@ -30,7 +32,7 @@ export function validateSettings(input:unknown):Settings {
  if(!['Hinglish','English','Hindi'].includes(s.language))throw new Error('Invalid language');
  if(typeof s.monitor!=='string'||s.monitor.length>64)throw new Error('Invalid monitor');
  if(!Array.isArray(s.messages)||s.messages.length<1||s.messages.length>30||s.messages.some(m=>typeof m!=='string'||!m.trim()||m.length>180))throw new Error('Use 1–30 messages, up to 180 characters each');
- return Object.fromEntries(Object.keys(DEFAULT_SETTINGS).map(k=>[k,s[k as keyof Settings]])) as unknown as Settings;
+ return {...Object.fromEntries(Object.keys(DEFAULT_SETTINGS).map(k=>[k,s[k as keyof Settings]])),avatar:validateAvatar(s.avatar??{kind:'original'})} as unknown as Settings;
 }
 export function parseState(raw:string,now=Date.now()):State {
  const v=JSON.parse(raw) as State;if(v.version!==1)throw new Error('Unsupported state version');const settings=validateSettings(v.settings);
@@ -39,10 +41,11 @@ export function parseState(raw:string,now=Date.now()):State {
  // Restart never catches up missed reminders. Future snoozes survive restart.
  return {...v,settings,nextReminderAt:v.nextReminderAt<=now?nextDue(settings,now):v.nextReminderAt};
 }
-export type Command = {type:'settings';settings:Settings}|{type:'log';ml:number}|{type:'pause'}|{type:'resume'}|{type:'snooze';minutes:number}|{type:'test'};
+export type Command = {type:'avatar';avatar:AvatarProfile}|{type:'settings';settings:Settings}|{type:'log';ml:number}|{type:'pause'}|{type:'resume'}|{type:'snooze';minutes:number}|{type:'test'};
 export function applyCommand(state:State,input:unknown,now=Date.now()):State {
  if(!input||typeof input!=='object')throw new Error('Invalid command');const c=input as Command;
  switch(c.type){
+ case 'avatar':return {...state,settings:{...state.settings,avatar:validateAvatar(c.avatar)}};
  case 'settings':{const settings=validateSettings(c.settings);return {...state,settings,nextReminderAt:nextDue(settings,now)}}
  case 'log':if(!numberIn(c.ml,1,5000))throw new Error('Choose 1–5000 mL');return {...state,water:[...state.water,{id:crypto.randomUUID(),at:now,ml:c.ml}]};
  case 'pause':return {...state,settings:{...state.settings,paused:true}};
@@ -54,7 +57,7 @@ export function applyCommand(state:State,input:unknown,now=Date.now()):State {
 }
 export interface Monitor {id:string;name:string}
 export interface DesktopAPI {getState:()=>Promise<State>;command:(command:Command)=>Promise<State>;monitors:()=>Promise<Monitor[]>;subscribe:(listener:(state:State)=>void)=>()=>void;onWalk:(listener:(data:WalkData)=>void)=>()=>void;walkDone:()=>void}
-export interface WalkData {durationSeconds:number;size:number;bottomOffset:number;message:string;sound:boolean}
+export interface WalkData {avatar?:AvatarProfile;durationSeconds:number;size:number;bottomOffset:number;message:string;sound:boolean}
 declare global {interface Window {sipbuddy?:DesktopAPI}}
 
 export function advanceScheduler(state:State,now:number,lastTick:number,blocked=false):{state:State;remind:boolean} {
