@@ -2,7 +2,7 @@
 
 A local-first Windows desktop companion and a separate React product website. The **Electron app** puts a transparent, click-through buddy over other applications. The website provides a browser demonstration; it cannot draw over your desktop.
 
-[Download SipBuddy 1.0.1 for Windows x64](https://github.com/amanpundir2027-lgtm/Sipbuddy/releases/download/v1.0.1/SipBuddy-Setup-1.0.1.exe) · [Release notes](https://github.com/amanpundir2027-lgtm/Sipbuddy/releases/tag/v1.0.1). This is an unsigned installer; see the SmartScreen notes and Windows acceptance checklist below. The website production build is verified. The website is deployed separately at https://sipbuddy-eta.vercel.app. SipBuddy must have its own hosting address; do not reuse the domain of another application.
+[Download SipBuddy 1.2.0 for Windows x64](https://github.com/amanpundir2027-lgtm/Sipbuddy/releases/download/v1.2.0/SipBuddy-Setup-1.2.0.exe) · [Release notes](https://github.com/amanpundir2027-lgtm/Sipbuddy/releases/tag/v1.2.0). This is an unsigned installer; see the SmartScreen notes and Windows acceptance checklist below. The website production build is verified. The website is deployed separately at https://sipbuddy-eta.vercel.app. SipBuddy must have its own hosting address; do not reuse the domain of another application.
 
 ## Use your own avatar
 
@@ -69,9 +69,9 @@ On Windows:
 pnpm dist:win
 ```
 
-Output: `apps/desktop/release/SipBuddy-Setup-1.0.1.exe` (64-bit, per-user NSIS installer with shortcuts and no required elevation). Update app versions together before a new release.
+Output: `apps/desktop/release/SipBuddy-Setup-1.2.0.exe` (64-bit, per-user NSIS installer with shortcuts and no required elevation). Update app versions together before a new release.
 
-`.github/workflows/release.yml` builds on `windows-latest`. A manual run produces a downloadable workflow artifact (it may contain the labeled placeholder if the original PNG has not been added); pushing a version tag such as `v1.0.1` publishes the installer through `gh release create`, with `contents: write` scoped to that job. The tag must already exist remotely and the original mascot must be in the checkout. Review the Windows checks below **before tagging**.
+`.github/workflows/release.yml` builds on `windows-latest`. A manual run produces a downloadable workflow artifact (it may contain the labeled placeholder if the original PNG has not been added); pushing a version tag such as `v1.2.0` publishes the installer through `gh release create`, with `contents: write` scoped to that job. The tag must already exist remotely and the original mascot must be in the checkout. Review the Windows checks below **before tagging**.
 
 Signing is not configured. An unsigned installer can display **Windows SmartScreen / unknown publisher** warnings. Do not describe this build as signed or tell users to ignore a warning without checking the source. A branded Windows executable icon is also not configured yet; the installer currently uses Electron's default app icon, while the system tray has its own water drop.
 
