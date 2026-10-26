@@ -2,7 +2,7 @@
 
 A local-first Windows desktop companion and a separate React product website. The **Electron app** puts a transparent, click-through buddy over other applications. The website provides a browser demonstration; it cannot draw over your desktop.
 
-[Download SipBuddy 1.0.1 for Windows x64](https://github.com/amanpundir2027-lgtm/Sipbuddy/releases/download/v1.0.1/SipBuddy-Setup-1.0.1.exe) · [Release notes](https://github.com/amanpundir2027-lgtm/Sipbuddy/releases/tag/v1.0.1). This is an unsigned installer; see the SmartScreen notes and Windows acceptance checklist below. The website production build is verified. Vercel hosting still needs account authorization. SipBuddy must have its own hosting address; do not reuse the domain of another application.
+[Download SipBuddy 1.0.1 for Windows x64](https://github.com/amanpundir2027-lgtm/Sipbuddy/releases/download/v1.0.1/SipBuddy-Setup-1.0.1.exe) · [Release notes](https://github.com/amanpundir2027-lgtm/Sipbuddy/releases/tag/v1.0.1). This is an unsigned installer; see the SmartScreen notes and Windows acceptance checklist below. The website production build is verified. The website is deployed separately at https://sipbuddy-eta.vercel.app. SipBuddy must have its own hosting address; do not reuse the domain of another application.
 
 ## Your original mascot
 
@@ -72,6 +72,8 @@ Linux cross-builds additionally need Wine. `electron-builder --win nsis --x64 --
 Use a separate Vercel project for SipBuddy, with its own `vercel.app` address or an explicitly selected SipBuddy domain. Do not reuse another application's custom domain. The GitHub Pages deployment workflow has been removed because project Pages sites inherit the custom domain of the account's main Pages site. An existing Pages deployment may still need to be unpublished in GitHub Settings → Pages by an authorized repository owner; removing the workflow does not delete a published site.
 
 ### Vercel
+
+Public production URL: **https://sipbuddy-eta.vercel.app**. The project is `sipbuddy`, with Root Directory `apps/web`. It is separate from the other application and its custom domain. A local production build was deployed using Vercel’s Build Output API; the GitHub repository is connected for future updates. `.github/workflows/verify-live.yml` checks the public site without Vercel credentials.
 
 Import this GitHub repository into your Vercel project. Set **Root Directory = `apps/web`** and allow source files outside that directory (the `packages/*` workspace dependencies and `assets/*` are required). `apps/web/vercel.json` configures Vite, frozen pnpm installation, the workspace build, and `dist` output. No application secrets are needed.
 

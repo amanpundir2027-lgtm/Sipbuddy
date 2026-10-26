@@ -1,0 +1,21 @@
+name: Verify public SipBuddy website
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  public-browser-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.25.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec playwright install --with-deps chromium
+      - name: Check public site without Vercel credentials
+        run: node scripts/verify-live-site.mjs https://sipbuddy-eta.vercel.app
