@@ -6,8 +6,10 @@ import {readFile} from 'node:fs/promises';
 // the actual shipped dependencies and feed, without downloading or installing.
 if(process.platform!=='win32')throw Error('This smoke test requires a Windows runner');
 const {version}=JSON.parse(await readFile(new URL('../apps/desktop/package.json',import.meta.url),'utf8'));
-const executable=fileURLToPath(new URL('../apps/desktop/release/win-unpacked/SipBuddy.exe',import.meta.url));
+const executable=process.env.SIPBUDDY_PACKAGED_EXECUTABLE||fileURLToPath(new URL('../apps/desktop/release/win-unpacked/SipBuddy.exe',import.meta.url));
 const app=await electron.launch({executablePath:executable,timeout:45000});
+let diagnostics='';
+for(const stream of [app.process().stdout,app.process().stderr])stream?.on('data',chunk=>{diagnostics=(diagnostics+chunk.toString()).slice(-10000)});
 try{
  // A second launch respects start-minimized. Reopen just as launching SipBuddy again would.
  await app.evaluate(({app})=>app.emit('second-instance',{},[],''));
@@ -28,4 +30,8 @@ try{
  if(JSON.stringify(after)!==JSON.stringify(before))throw Error('Checking for updates changed user state');
  console.log('PACKAGED_UPDATE_CHECK_PASSED',checked.status,checked.currentVersion);
  }
+}catch(error){
+ const message=String(error)+'\n'+diagnostics;
+ console.error('::error::'+message.replace(/%/g,'%25').replace(/\r/g,'%0D').replace(/\n/g,'%0A'));
+ throw error;
 }finally{await app.close()}

@@ -1,0 +1,38 @@
+name: Verify published Windows app updates
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  published-app:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.25.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Install the exact published release on this ephemeral runner
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $version = (Get-Content apps/desktop/package.json | ConvertFrom-Json).version
+          gh release download "v$version" --pattern "SipBuddy-Setup-$version.exe" --dir "$env:RUNNER_TEMP"
+          if ($LASTEXITCODE -ne 0) { throw 'Could not download the published installer' }
+          $installer = Join-Path $env:RUNNER_TEMP "SipBuddy-Setup-$version.exe"
+          $installDir = Join-Path $env:RUNNER_TEMP 'SipBuddyUpdateCheck'
+          $result = Start-Process -FilePath $installer -ArgumentList '/S',"/D=$installDir" -Wait -PassThru
+          if ($result.ExitCode -ne 0) { throw "Installer failed: $($result.ExitCode)" }
+          Stop-Process -Name SipBuddy -ErrorAction SilentlyContinue
+          $executable = Join-Path $installDir 'SipBuddy.exe'
+          if (!(Test-Path $executable)) { throw 'Installed executable missing' }
+          "SIPBUDDY_PACKAGED_EXECUTABLE=$executable" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+      - name: Check the installed client and public update feed
+        run: node tests/packaged-updates-smoke.mjs
+        env:
+          SIPBUDDY_VERIFY_PUBLIC_FEED: '1'
