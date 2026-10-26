@@ -24,11 +24,11 @@ try{
  const checked=await page.evaluate(()=>window.sipbuddy.getUpdateState());
  if(checked.status==='error')throw Error('Packaged client failed to read the public GitHub update feed');
  if(checked.status==='available'){
-  if(!await page.getByRole('button',{name:'Download update',exact:true}).isVisible())throw Error('Missing explicit download choice');
- }else if(!await page.getByText('You have the latest version.',{exact:true}).isVisible())throw Error('Missing up-to-date message');
+  await page.getByRole('button',{name:'Download update',exact:true}).waitFor({state:'visible'});
+ }else await page.getByText('You have the latest version.',{exact:true}).waitFor({state:'visible'});
  const after=await page.evaluate(()=>window.sipbuddy.getState());
  if(JSON.stringify(after)!==JSON.stringify(before))throw Error('Checking for updates changed user state');
- console.log('PACKAGED_UPDATE_CHECK_PASSED',checked.status,checked.currentVersion);
+ console.log(`::notice::PACKAGED_UPDATE_CHECK_PASSED ${checked.status} ${checked.currentVersion}`);
  }
 }catch(error){
  const message=String(error)+'\n'+diagnostics;
