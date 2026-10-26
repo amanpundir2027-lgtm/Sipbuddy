@@ -3,12 +3,14 @@ import {Droplets,Play,Check,Plus,Pause,ArrowUpRight,Flame,Volume2,Monitor,Settin
 import {motion} from 'motion/react';
 import {WalkingMascot} from './WalkingMascot';
 import {PersonalMascot} from './PersonalMascot';
+import {UploadedMascot} from './UploadedMascot';
 import {AvatarEditor} from './AvatarEditor';
 export {AvatarEditor} from './AvatarEditor';
 import {DEFAULT_AVATAR,DEFAULT_SETTINGS,MESSAGES,dailyTotal,weekHistory,streak,localDate,type AvatarProfile,type State,type Settings,type Command,type Monitor as Screen,type WalkData} from '@sipbuddy/core';
 export function Brand(){return <a className="brand" href="#"><span className="brand-icon"><Droplets size={22}/></span>SipBuddy<span className="brand-dot">.</span></a>}
 export function Mascot({height=170,className='',avatar=DEFAULT_AVATAR}:{height?:number;className?:string;avatar?:AvatarProfile}) {
  const [missing,setMissing]=useState(false);
+ if(avatar.kind==='uploaded')return <UploadedMascot avatar={avatar} height={height}/>;
  if(avatar.kind==='personal')return <PersonalMascot avatar={avatar} height={height}/>;
  return missing?<span className="walking-asset-error">Original avatar unavailable</span>:<img className={`mascot ${className}`} src="./aman-water-chibi.png" onError={()=>setMissing(true)} style={{height}} alt="Aman’s personal hydration buddy"/>;
 }

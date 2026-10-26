@@ -1,4 +1,5 @@
 import {chromium} from '@playwright/test';
+import {readFileSync} from 'node:fs';
 const input=process.argv[2];
 if(!input)throw new Error('Pass the public deployment URL');
 const site=new URL(input);site.protocol='https:';
@@ -17,5 +18,7 @@ try {
  await page.waitForFunction(url=>!!document.querySelector(`a[href="${url}"]`),release.url);
  const preview=page.locator('#preview');await preview.getByRole('button',{name:'Meet your buddy'}).click();const buddy=preview.locator('.walking-buddy');await buddy.waitFor();const first=await buddy.evaluate(e=>e.getBoundingClientRect().left);await page.waitForTimeout(1200);const second=await buddy.evaluate(e=>e.getBoundingClientRect().left);if(second<=first)throw new Error('Live mascot demo did not move');
  if(errors.length)throw new Error(`Browser errors: ${errors.join('; ')}`);
+ const sent=[];page.on('request',r=>{if(r.method()==='POST')sent.push(r.url())});
+ const studio=page.getByRole('region',{name:'Create your personal avatar'});await studio.getByLabel('Upload your avatar image').setInputFiles({name:'test-avatar.png',mimeType:'image/png',buffer:readFileSync(new URL('../assets/tray.png',import.meta.url))});await studio.locator('.uploaded-mascot').waitFor();await studio.getByRole('button',{name:'Use my avatar',exact:true}).click();await page.waitForFunction(()=>JSON.parse(localStorage.getItem('sipbuddy-demo')).settings.avatar.kind==='uploaded');await page.reload({waitUntil:'networkidle'});await page.locator('.hero-visual .uploaded-mascot').waitFor();if(sent.length)throw new Error('Selecting an avatar unexpectedly made a POST request');console.log('PUBLIC_AVATAR_UPLOAD_VERIFIED');
  console.log(`LIVE_SITE_VERIFIED ${site.href}`);console.log(`VERIFIED_INSTALLER ${release.url}`);
 }finally{await browser.close()}

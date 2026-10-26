@@ -1,10 +1,11 @@
-import React,{useId,useState} from 'react';
+import React,{useEffect,useId,useState} from 'react';
 import type {AvatarProfile} from '@sipbuddy/core';
 
 type Personal = Extract<AvatarProfile,{kind:'personal'}>;
 export function PersonalMascot({avatar,height=170,walking=false}:{avatar:Personal;height?:number;walking?:boolean}) {
  const id=`personal-${useId().replace(/[^a-zA-Z0-9]/g,'')}`;
  const [failed,setFailed]=useState(false);
+ useEffect(()=>setFailed(false),[avatar.portrait]);
  const moving=(name:string)=>walking?name:undefined;
  const portrait=avatar.portrait&&!failed;
  return <svg viewBox="0 0 260 360" width={height*260/360} height={height}

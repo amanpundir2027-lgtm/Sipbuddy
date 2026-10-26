@@ -1,6 +1,7 @@
 import React, {useId, useState, type CSSProperties} from 'react';
 import {DEFAULT_AVATAR,type AvatarProfile} from '@sipbuddy/core';
 import {PersonalMascot} from './PersonalMascot';
+import {UploadedMascot} from './UploadedMascot';
 
 // The supplied PNG is a square canvas. These masks follow its pants and shoes;
 // every visible body part still comes from that original, unmodified image.
@@ -12,6 +13,7 @@ const legs = [
 ] as const;
 
 export function WalkingMascot({height,avatar=DEFAULT_AVATAR}: {height:number;avatar?:AvatarProfile}) {
+ if(avatar.kind==='uploaded')return <UploadedMascot avatar={avatar} height={height} walking/>;
  return avatar.kind==='personal'?<PersonalMascot height={height} avatar={avatar} walking/>:<OriginalWalkingMascot height={height}/>;
 }
 function OriginalWalkingMascot({height}: {height: number}) {

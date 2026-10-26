@@ -41,3 +41,12 @@
 @keyframes personal-weight{0%,50%,100%{transform:translateY(0) rotate(-.8deg)}25%,75%{transform:translateY(-5px) rotate(.8deg)}}
 @media(max-width:800px){.avatar-studio-heading{flex-direction:column;gap:13px}.avatar-studio-grid{gap:22px}.avatar-studio{padding:22px}.avatar-studio-actions .text-button{margin-left:0}}
 @media(max-width:520px){.avatar-studio-grid{grid-template-columns:1fr;gap:20px}.avatar-live-preview{min-height:280px}.avatar-studio{padding:19px}.avatar-studio-heading h2{font-size:24px}.avatar-studio-actions{gap:12px}.avatar-studio-actions .button{font-size:11px}.personalize-section{padding-top:0}}
+.uploaded-mascot{display:block;flex-shrink:0;max-width:none;overflow:visible}
+.uploaded-mascot .gait-body{animation-name:uploaded-weight}
+.uploaded-float{transform-origin:256px 380px;animation:uploaded-float var(--gait-cycle,1.3s) ease-in-out infinite}
+.avatar-mode-tabs{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:24px}.avatar-mode-tabs button{background:#f4f8f0;border:1px solid #dce8d9;border-radius:8px;color:#758d7a;font-size:11px;padding:11px 16px}.avatar-mode-tabs button[aria-pressed=true]{color:var(--teal);background:#e5f4eb;border-color:#91c2ab}
+.avatar-upload-help{font-size:11px!important;line-height:1.6}.avatar-background-option{display:flex;align-items:center;gap:8px;font-size:11px;color:#5c7b67}.avatar-background-option input{accent-color:var(--teal)}.avatar-background-warning{font-size:10px!important;color:#927e4b!important;background:#faf5e6;border:1px solid #eee3c4;border-radius:7px;padding:10px}
+.avatar-joints{border:1px solid #e0e9da;border-radius:8px;padding:12px 14px;font-size:11px;color:#698672}.avatar-joints summary{cursor:pointer}.avatar-joints p{font-size:10px;margin-top:10px}.avatar-joints label{display:flex;align-items:center;justify-content:space-between;gap:15px;margin-top:13px;font-size:10px}.avatar-joints input{width:55%;accent-color:var(--teal)}
+@keyframes uploaded-weight{0%,50%,100%{transform:translateY(0) rotate(-.5deg)}25%,75%{transform:translateY(-8px) rotate(.5deg)}}
+@keyframes uploaded-float{0%,100%{transform:translateY(0) rotate(-1deg)}50%{transform:translateY(-9px) rotate(1deg)}}
+@media(prefers-reduced-motion:reduce){.uploaded-float{animation:none!important}}

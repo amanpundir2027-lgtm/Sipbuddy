@@ -28,6 +28,7 @@ test('walking buddy alternates planted legs and bends knees without replacing th
 test('personal photo avatar stays local, replaces the original, persists, and can be removed',async({page})=>{
  const posted:string[]=[];const originalLoads:string[]=[];page.on('request',r=>{if(r.method()==='POST')posted.push(r.url());if(r.url().includes('aman-water-chibi.png'))originalLoads.push(r.url())});
  await page.goto('/');const studio=page.getByRole('region',{name:'Create your personal avatar'});
+ await studio.getByRole('button',{name:'Private photo avatar',exact:true}).click();
  await studio.getByLabel('Upload your photo').setInputFiles({name:'private-photo.png',mimeType:'image/png',buffer:readFileSync('assets/tray.png')});
  await expect(studio.locator('[data-personal-portrait]')).toBeVisible();
  await studio.getByRole('textbox',{name:'Buddy’s name'}).fill('Sam');await studio.getByRole('button',{name:'Outfit #7356a5',exact:true}).click();await studio.getByRole('button',{name:'Use my avatar',exact:true}).click();
@@ -45,7 +46,26 @@ test('personal photo avatar stays local, replaces the original, persists, and ca
 });
 test('unsupported photo files cannot replace a saved avatar',async({page})=>{
  await page.goto('/');const studio=page.getByRole('region',{name:'Create your personal avatar'});
+ await studio.getByRole('button',{name:'Private photo avatar',exact:true}).click();
  await studio.getByLabel('Upload your photo').setInputFiles({name:'unsafe.svg',mimeType:'image/svg+xml',buffer:Buffer.from('<svg xmlns="http://www.w3.org/2000/svg"><script>alert(1)</script></svg>')});
  await expect(studio.getByRole('alert')).toContainText('PNG, JPEG, or WebP');
  expect(await page.evaluate(()=>JSON.parse(localStorage.getItem('sipbuddy-demo')!).settings.avatar.portrait)).toBeNull();
+});
+
+test('existing avatar is used as artwork, stays private, and survives reload',async({page})=>{
+ const sent:string[]=[];page.on('request',r=>{if(r.method()==='POST')sent.push(r.url())});await page.goto('/');
+ const studio=page.getByRole('region',{name:'Create your personal avatar'});
+ await studio.getByLabel('Upload your avatar image').setInputFiles({name:'my-avatar.png',mimeType:'image/png',buffer:readFileSync('assets/tray.png')});
+ await expect(studio.locator('.uploaded-mascot')).toBeVisible();
+ await studio.getByRole('textbox',{name:'Buddy’s name'}).fill('My avatar');
+ await studio.getByRole('combobox',{name:'Avatar movement'}).selectOption('float');
+ await studio.getByRole('button',{name:'Use my avatar',exact:true}).click();await expect(studio.getByRole('status')).toContainText('saved on this device');
+ const saved=await page.evaluate(()=>JSON.parse(localStorage.getItem('sipbuddy-demo')!).settings.avatar);
+ expect(saved.kind).toBe('uploaded');expect(saved.motion).toBe('float');expect(saved.image).toMatch(/^data:image\/png;base64,/);expect(saved.name).toBe('My avatar');
+ await page.reload();await expect(page.locator('.hero-visual .uploaded-mascot')).toBeVisible();
+ await page.locator('#preview').getByRole('button',{name:'Meet your buddy'}).click();const walk=page.locator('#preview .walking-mascot');await expect(walk).toBeAttached();expect(await walk.locator('[data-uploaded-avatar]').getAttribute('href')).toBe(saved.image);
+ const alpha=await page.locator('.hero-visual [data-uploaded-avatar]').evaluate(async element=>{const image=new Image();image.src=element.getAttribute('href')!;await image.decode();const canvas=document.createElement('canvas');canvas.width=canvas.height=512;const c=canvas.getContext('2d')!;c.drawImage(image,0,0);const data=c.getImageData(0,0,512,512).data;let transparent=0;for(let i=3;i<data.length;i+=4)if(data[i]===0)transparent++;return transparent});expect(alpha).toBeGreaterThan(0);expect(sent).toEqual([]);
+ await studio.getByRole('combobox',{name:'Avatar movement'}).selectOption('walk');await studio.getByText('Adjust walking joints',{exact:true}).click();await studio.getByRole('slider',{name:'Hip height',exact:true}).focus();await studio.getByRole('slider',{name:'Hip height',exact:true}).press('ArrowRight');await studio.getByRole('button',{name:'Use my avatar',exact:true}).click();
+ const adjusted=await page.evaluate(()=>JSON.parse(localStorage.getItem('sipbuddy-demo')!).settings.avatar);expect(adjusted.rig.hipY).toBe(saved.rig.hipY+1);expect(adjusted.image).toBe(saved.image);await expect(page.locator('#preview .gait-leg')).toHaveCount(2);
+ await studio.getByRole('button',{name:'Remove my avatar',exact:true}).click();await expect(page.locator('.hero-visual .uploaded-mascot')).toHaveCount(0);expect(await page.evaluate(()=>JSON.parse(localStorage.getItem('sipbuddy-demo')!).settings.avatar.kind)).toBe('personal');
 });

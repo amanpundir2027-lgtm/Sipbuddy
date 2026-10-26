@@ -32,3 +32,25 @@ export function createPortrait(image:HTMLImageElement,{zoom,x,y,cartoon}:{zoom:n
  // Canvas exports pixels only: camera metadata and the original file are not saved.
  return canvas.toDataURL('image/png');
 }
+
+export function createUploadedAvatar(image:HTMLImageElement,removeBackground:boolean):{image:string;opaqueBackground:boolean} {
+ const canvas=document.createElement('canvas');canvas.width=canvas.height=512;
+ const context=canvas.getContext('2d',{willReadFrequently:true});if(!context)throw new Error('Your browser could not prepare this image.');
+ const scale=Math.min(472/image.naturalWidth,472/image.naturalHeight);
+ const width=Math.round(image.naturalWidth*scale),height=Math.round(image.naturalHeight*scale),left=Math.floor((512-width)/2),top=Math.floor((512-height)/2);
+ context.imageSmoothingQuality='high';context.drawImage(image,left,top,width,height);
+ const pixels=context.getImageData(0,0,512,512),data=pixels.data;
+ const corners=[[left+1,top+1],[left+width-2,top+1],[left+1,top+height-2],[left+width-2,top+height-2]].map(([x,y])=>(y*512+x)*4);
+ const opaqueBackground=corners.every(p=>data[p+3]>240);
+ if(removeBackground&&opaqueBackground){
+  const color=[0,1,2].map(c=>corners.reduce((sum,p)=>sum+data[p+c],0)/4);
+  const flat=corners.every(p=>color.reduce((sum,v,c)=>sum+(v-data[p+c])**2,0)<2500);
+  if(flat){const seen=new Uint8Array(512*512),queue:number[]=[];
+   const add=(index:number)=>{if(seen[index])return;seen[index]=1;const p=index*4;const similar=data[p+3]<16||color.reduce((sum,v,c)=>sum+(v-data[p+c])**2,0)<1600;if(similar)queue.push(index)};
+   for(let i=0;i<512;i++){add(i);add(511*512+i);add(i*512);add(i*512+511)}
+   for(let i=0;i<queue.length;i++){const n=queue[i],x=n%512,y=Math.floor(n/512);data[n*4+3]=0;if(x>0)add(n-1);if(x<511)add(n+1);if(y>0)add(n-512);if(y<511)add(n+512)}
+   context.putImageData(pixels,0,0);
+  }
+ }
+ return {image:canvas.toDataURL('image/png'),opaqueBackground:opaqueBackground&&(!removeBackground||corners.some(p=>data[p+3]>240))};
+}

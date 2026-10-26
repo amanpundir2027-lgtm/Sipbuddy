@@ -1,5 +1,5 @@
 import {DEFAULT_AVATAR,validateAvatar,type AvatarProfile} from './avatar';
-export {DEFAULT_AVATAR,validateAvatar,type AvatarProfile} from './avatar';
+export {DEFAULT_AVATAR,DEFAULT_UPLOAD_RIG,validateAvatar,type AvatarProfile,type UploadRig} from './avatar';
 export const MESSAGES = {
   Hinglish: ['Oye, paani pee le! 💧','Ek sip toh banta hai!','Chal, ek water break ho jaye!','Hydration break, boss!'],
   English: ['Your water bottle misses you.','Paani > another coffee!','CEO of dehydration? Not today.',"You've been working hard. Time for water!"],

@@ -51,7 +51,8 @@ function command(input:unknown){
  if(input&&typeof input==='object'&&['avatar','settings'].includes((input as {type:string}).type)){
   const command=input as {type:string;avatar?:unknown;settings?:{avatar?:unknown}};
   const avatar=validateAvatar(command.type==='avatar'?command.avatar:command.settings?.avatar??{kind:'original'});
-  if(avatar.kind==='personal'&&avatar.portrait){const image=nativeImage.createFromDataURL(avatar.portrait);if(image.isEmpty())throw new Error('Invalid portrait image');}
+  const data=avatar.kind==='uploaded'?avatar.image:avatar.kind==='personal'?avatar.portrait:null;
+  if(data&&nativeImage.createFromDataURL(data).isEmpty())throw new Error('Invalid avatar image');
  }
  const previous=state.settings;state=applyCommand(state,input);if((input as {type:string}).type==='test')startWalk(true);else{
  if(state.settings.paused||(input as {type:string}).type==='avatar')clearOverlays();

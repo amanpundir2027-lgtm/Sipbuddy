@@ -1,6 +1,6 @@
 import {describe,it,expect} from 'vitest';
 import {readFileSync} from 'node:fs';
-import {applyCommand,DEFAULT_AVATAR,initialState,parseState,validateAvatar,type AvatarProfile} from './index';
+import {applyCommand,DEFAULT_AVATAR,DEFAULT_UPLOAD_RIG,initialState,parseState,validateAvatar,type AvatarProfile} from './index';
 const photo='data:image/png;base64,'+readFileSync('assets/tray.png').toString('base64');
 const personal={...DEFAULT_AVATAR,kind:'personal',portrait:photo,name:'Sam'} as AvatarProfile;
 describe('personal avatars',()=>{
@@ -11,3 +11,11 @@ describe('personal avatars',()=>{
  it('rejects decompression-sized portraits and oversized payloads',()=>{const bytes=readFileSync('assets/tray.png');bytes.writeUInt32BE(100000,16);expect(()=>validateAvatar({...personal,portrait:'data:image/png;base64,'+bytes.toString('base64')})).toThrow('512');expect(()=>validateAvatar({...personal,portrait:photo+'A'.repeat(500000)})).toThrow()});
  it('validates colors and names, and strips unknown fields',()=>{expect(()=>validateAvatar({...personal,shirtColor:'url(https://tracking.example)'})).toThrow();expect(()=>validateAvatar({...personal,name:' '})).toThrow();expect(validateAvatar({...personal,untrusted:'ignored'})).toEqual(personal)});
 });
+
+it('persists uploaded artwork and walking joints without resetting reminders',()=>{const now=Date.now(),before=initialState(now);const avatar={kind:'uploaded',name:'My artwork',image:photo,motion:'walk',rig:{...DEFAULT_UPLOAD_RIG}};const next=applyCommand(before,{type:'avatar',avatar},now+1234);expect(next.nextReminderAt).toBe(before.nextReminderAt);expect(next.settings.avatar).toEqual(avatar);expect(parseState(JSON.stringify(next),now).settings.avatar).toEqual(avatar)});
+it.each([
+ {motion:'run'},
+ {image:'https://tracking.example/avatar.png'},
+ {rig:{...DEFAULT_UPLOAD_RIG,hipY:5000}},
+ {rig:{...DEFAULT_UPLOAD_RIG,kneeY:330,hipY:338}},
+])('rejects invalid uploaded artwork or joints',patch=>expect(()=>validateAvatar({kind:'uploaded',name:'Buddy',image:photo,motion:'walk',rig:DEFAULT_UPLOAD_RIG,...patch})).toThrow());
