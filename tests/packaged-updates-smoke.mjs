@@ -9,6 +9,8 @@ const {version}=JSON.parse(await readFile(new URL('../apps/desktop/package.json'
 const executable=fileURLToPath(new URL('../apps/desktop/release/win-unpacked/SipBuddy.exe',import.meta.url));
 const app=await electron.launch({executablePath:executable,timeout:45000});
 try{
+ // A second launch respects start-minimized. Reopen just as launching SipBuddy again would.
+ await app.evaluate(({app})=>app.emit('second-instance',{},[],''));
  const page=await app.firstWindow();await page.waitForSelector('.dashboard');
  const initial=await page.evaluate(()=>window.sipbuddy.getUpdateState());
  if(initial.currentVersion!==version||initial.status==='disabled')throw Error('Packaged update client missing or wrong version');
